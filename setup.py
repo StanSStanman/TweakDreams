@@ -16,5 +16,7 @@ setup(
     license='None',
     install_requires=['numpy',
                       'scipy',
-                      'mne']
+                      'mne',
+                      'xarray',
+                      'matplotlib']
 )
