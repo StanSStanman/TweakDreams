@@ -130,7 +130,7 @@ if __name__ == '__main__':
     sub_n = ['005']
     subjects = [prj + sn for sn in sub_n]
     nights = ['N1', 'N2', 'N3', 'N4']
-    nights = ['N3', 'N4']
+    nights = ['N4']
 
     for sbj in subjects:
         for ngt in nights:
