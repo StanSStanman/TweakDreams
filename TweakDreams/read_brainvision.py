@@ -1,6 +1,7 @@
 import os
 import os.path as op
 import mne
+from utils.io import (brainvision_reader, brainvision_loader)
 from utils.montage import read_elc
 
 
@@ -25,7 +26,7 @@ def brainvision_to_mne(vhdr_fnames, elc_fname, events_id, raw_dir, fif_fname):
 
     for vhdr_fname in vhdr_fnames:
         # Read brainvision raw (no memory loading)
-        raw = mne.io.read_raw_brainvision(vhdr_fname, preload=False)
+        raw = brainvision_reader(vhdr_fname)
         # Reading the montage
         digi_mont = read_elc(elc_fname, head_size=None)
         # Extracting salient events
@@ -69,7 +70,7 @@ def brainvision_to_mne(vhdr_fnames, elc_fname, events_id, raw_dir, fif_fname):
                 tmax = raw.times[stop_tp]
                 crop_raw = raw.copy().crop(tmin, tmax)
                 # Load data in memory
-                crop_raw.load_data()
+                brainvision_loader(crop_raw)
                 # Some subjects have extra BIP channels we should drop
                 # ch_drop = ['BIP' + str(b) for b in list(range(4, 25))]
                 # crop_raw = crop_raw.drop_channels(ch_drop, on_missing='warn')
@@ -124,7 +125,7 @@ if __name__ == '__main__':
     prj = 'TD'
     # sub_n = ['001', '002', '003', '005', '006',
     #          '007', '008', '009', '010', '011']
-    sub_n = ['002', '003', '005', '006',
+    sub_n = ['003', '005', '006',
              '007', '008', '009', '010', '011']
     subjects = [prj + sn for sn in sub_n]
     nights = ['N1', 'N2', 'N3', 'N4']
