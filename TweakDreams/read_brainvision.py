@@ -104,9 +104,13 @@ def brainvision_to_mne(vhdr_fnames, elc_fname, events_id, raw_dir, fif_fname):
 
 if __name__ == '__main__':
     from utils.io import fname_finder
-    data_dir = '/media/jerry/ruggero/tweakdreams'
-    subjects = ['TD010']
-    nights = ['N1']
+    # data_dir = '/media/jerry/ruggero/tweakdreams'
+    data_dir = '/home/ruggero.basanisi/data/tweakdreams'
+    prj = 'TD'
+    sub_n = ['001', '002', '003', '005', '006',
+             '007', '008', '009', '010', '011']
+    subjects = [prj + sn for sn in sub_n]
+    nights = ['N1', 'N2', 'N3', 'N4']
 
     for sbj in subjects:
         for ngt in nights:
