@@ -45,6 +45,17 @@ def brainvision_to_mne(vhdr_fnames, elc_fname, events_id, raw_dir, fif_fname):
                 stop_tp = ev[0]
                 stop_idx = i
 
+            # Events checkers:
+            # Avoid tmin being higher than tmax (if a s20 is lacking)
+            if start and stop:
+                if start_tp > stop_tp:
+                    stop_tp = False
+            # Avoid data loss (cut data also if a final s40 is not detected)
+            if (start and not stop) and i==(len(events) - 1):
+                stop = True
+                stop_tp = ev[0]
+                stop_idx = i
+
             # Once a chunk is detected, cut the raw file, load data, 
             # add montage, do some mumbojambos, and save as a mne .fif file
             if start and stop:
