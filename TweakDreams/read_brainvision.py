@@ -59,6 +59,9 @@ def brainvision_to_mne(vhdr_fnames, elc_fname, events_id, raw_dir, fif_fname):
                 crop_raw = raw.copy().crop(tmin, tmax)
                 # Load data in memory
                 crop_raw.load_data()
+                # Some subjects have extra BIP channels we should drop
+                # ch_drop = ['BIP' + str(b) for b in list(range(4, 25))]
+                # crop_raw = crop_raw.drop_channels(ch_drop, on_missing='warn')
                 # Adding the reference channel
                 crop_raw = crop_raw.add_reference_channels('Z12Z')
                 # Renaming and assing a type to autonomic channels
@@ -115,7 +118,7 @@ if __name__ == '__main__':
     for sbj in subjects:
         for ngt in nights:
             _vhdr = op.join(data_dir, '{0}', '{0}_{1}', 'eeg',
-                            '*', '*.vhdr').format(sbj, ngt)
+                            '*.vhdr').format(sbj, ngt)
             vhdr_fnames = fname_finder(_vhdr)
             _elc = op.join(data_dir, '{0}', '{0}_{1}', 'eeg', 
                            '{0}_{1}*.elc').format(sbj, ngt)
