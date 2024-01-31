@@ -130,7 +130,7 @@ def raw_by_awakenings(vhdr_fnames, elc_fname, events_id, raw_dir, fif_fname):
                 # Saving the raw fif file
                 crop_raw.save(op.join(aw_raw_dir, 
                                       '{0}-raw.fif'.format(fif_fname)),
-                              split_naming='bids',
+                              split_naming='neuromag',
                               overwrite=True)
 
                 ev_chunk = events.copy()[start_idx:stop_idx, :]
@@ -184,7 +184,7 @@ def raw_by_nights(vhdr_fnames, elc_fname, events_id, raw_dir, fif_fname):
 
     # Saving the raw fif file
     raw.save(op.join(raw_dir, '{0}-raw.fif'.format(fif_fname)),
-             split_naming='bids', overwrite=True)
+             split_naming='neuromag', overwrite=True)
     # Saving events
     mne.write_events(op.join(raw_dir, '{0}-eve.fif'.format(fif_fname)), 
                             events, overwrite=True)
