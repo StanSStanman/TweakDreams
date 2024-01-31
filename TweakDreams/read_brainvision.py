@@ -137,8 +137,8 @@ def raw_by_awakenings(vhdr_fnames, elc_fname, events_id, raw_dir, fif_fname):
                 mne.write_events(op.join(aw_raw_dir, 
                                         '{0}-eve.fif'.format(fif_fname)), 
                                         ev_chunk, overwrite=True)
-                # Rename raw files
-                rename_raws(aw_raw_dir)
+                # # Rename raw files
+                # rename_raws(aw_raw_dir)
 
                 start, stop = False, False
                 awakening += 1
@@ -188,8 +188,8 @@ def raw_by_nights(vhdr_fnames, elc_fname, events_id, raw_dir, fif_fname):
     # Saving events
     mne.write_events(op.join(raw_dir, '{0}-eve.fif'.format(fif_fname)), 
                             events, overwrite=True)
-    # Rename raw files
-    rename_raws(raw_dir)
+    # # Rename raw files
+    # rename_raws(raw_dir)
     
     return
 
@@ -237,7 +237,7 @@ if __name__ == '__main__':
                         'Stimulus/s28': 28}
             raw_dir = op.join(data_dir, 'mne', '{0}', '{1}', 
                               'raw').format(sbj, ngt)
-            fif_fname = '{0}_{1}'.format(sbj, ngt)
+            fif_fname = '{0}-{1}'.format(sbj, ngt)
 
             brainvision_to_mne(vhdr_fnames, elc_fname, events_id, 
                                raw_dir, fif_fname)
