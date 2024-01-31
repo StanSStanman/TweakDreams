@@ -5,7 +5,8 @@ from utils.io import (brainvision_reader, brainvision_loader)
 from utils.montage import read_elc
 
 
-def brainvision_to_mne(vhdr_fnames, elc_fname, events_id, raw_dir, fif_fname):
+def brainvision_to_mne(vhdr_fnames, elc_fname, events_id, raw_dir, fif_fname,
+                        divide_by='nights'):
     """Read and convert TweakDreams' brainvision raw files in mne fif files.
        The raw fif files are diveded by nights and awakenings and saved with 
        the correct references and names for the autonomic signals channels.
@@ -17,21 +18,74 @@ def brainvision_to_mne(vhdr_fnames, elc_fname, events_id, raw_dir, fif_fname):
         events_id (_type_): _description_
         raw_dir (_type_): _description_
         fif_fname (_type_): _description_
+        divide_by (_type_): _description_
 
     Return:
 
     """
+    if divide_by == 'nights':
+        raw_by_nights(vhdr_fnames, elc_fname, events_id, raw_dir, fif_fname)
+    elif divide_by == 'awakenings':
+        raw_by_awakenings(vhdr_fnames, elc_fname, events_id, 
+                          raw_dir, fif_fname)
+
+    return
+
+
+def brvs_pipeline(raw_data, montage):
+    # Load data in memory
+    brainvision_loader(raw_data)
+    # Some subjects have extra BIP channels we should drop
+    # ch_drop = ['BIP' + str(b) for b in list(range(4, 25))]
+    # crop_raw = crop_raw.drop_channels(ch_drop, on_missing='warn')
+    # Adding the reference channel
+    raw_data = raw_data.add_reference_channels('Z12Z')
+    # Renaming and assing a type to autonomic channels
+    raw_data = raw_data.rename_channels(mapping={'BIP1': 'EMG',
+                                                'BIP2': 'ECG',
+                                                'BIP3': 'RES'})
+    raw_data = raw_data.set_channel_types(mapping={'EMG': 'emg',
+                                                'ECG': 'ecg',
+                                                'RES': 'resp'})
+    # Adding the montage after defining autonomic channels
+    raw_data = raw_data.set_montage(montage)
+    # Referencing and renaming the vertical ocular channel
+    raw_data = mne.set_bipolar_reference(raw_data, 'VEOGR', 'R1Z', 
+                                         ch_name='VEOG', 
+                                         drop_refs=False, 
+                                         copy='False')
+    # Deleting the old unreferenced VEOGR channel
+    raw_data.drop_channels(ch_names=['VEOGR'])
+    # Creating the horizontal ocular channel 
+    raw_data = mne.set_bipolar_reference(raw_data, 'L1G', 'R1G', 
+                                         ch_name='HEOG', 
+                                         drop_refs=False, 
+                                         copy='False')
+    # Assing type to ocular channels
+    raw_data = raw_data.set_channel_types(mapping={'VEOG': 'eog',
+                                                   'HEOG': 'eog'})
+
+    return raw_data
+
+
+def raw_by_awakenings(vhdr_fnames, elc_fname, events_id, raw_dir, fif_fname):
+
+    # Reading the montage
+    digi_mont = read_elc(elc_fname, head_size=None)
+
     # Setting counter for awakenings
     awakening = 0
 
     for vhdr_fname in vhdr_fnames:
         # Read brainvision raw (no memory loading)
         raw = brainvision_reader(vhdr_fname)
-        # Reading the montage
-        digi_mont = read_elc(elc_fname, head_size=None)
         # Extracting salient events
-        events, event_dict = mne.events_from_annotations(raw, 
-                                                         event_id=events_id)
+        try:
+            events, event_dict = mne.events_from_annotations(
+                raw, event_id=events_id)
+        except:
+            continue
+
 
         # Setting counters for events
         start, stop = False, False
@@ -69,37 +123,10 @@ def brainvision_to_mne(vhdr_fnames, elc_fname, events_id, raw_dir, fif_fname):
                 tmin = raw.times[start_tp]
                 tmax = raw.times[stop_tp]
                 crop_raw = raw.copy().crop(tmin, tmax)
-                # Load data in memory
-                brainvision_loader(crop_raw)
-                # Some subjects have extra BIP channels we should drop
-                # ch_drop = ['BIP' + str(b) for b in list(range(4, 25))]
-                # crop_raw = crop_raw.drop_channels(ch_drop, on_missing='warn')
-                # Adding the reference channel
-                crop_raw = crop_raw.add_reference_channels('Z12Z')
-                # Renaming and assing a type to autonomic channels
-                crop_raw = crop_raw.rename_channels(mapping={'BIP1': 'EMG',
-                                                            'BIP2': 'ECG',
-                                                            'BIP3': 'RES'})
-                crop_raw = crop_raw.set_channel_types(mapping={'EMG': 'emg',
-                                                            'ECG': 'ecg',
-                                                            'RES': 'resp'})
-                # Adding the montage after defining autonomic channels
-                crop_raw = crop_raw.set_montage(digi_mont)
-                # Referencing and renaming the vertical ocular channel
-                crop_raw = mne.set_bipolar_reference(crop_raw, 'VEOGR', 'R1Z', 
-                                                     ch_name='VEOG', 
-                                                     drop_refs=False, 
-                                                     copy='False')
-                # Deleting the old unreferenced VEOGR channel
-                crop_raw.drop_channels(ch_names=['VEOGR'])
-                # Creating the horizontal ocular channel 
-                crop_raw = mne.set_bipolar_reference(crop_raw, 'L1G', 'R1G', 
-                                                     ch_name='HEOG', 
-                                                     drop_refs=False, 
-                                                     copy='False')
-                # Assing type to ocular channels
-                crop_raw = crop_raw.set_channel_types(mapping={'VEOG': 'eog',
-                                                            'HEOG': 'eog'})
+
+                # Adding features to data
+                crop_raw = brvs_pipeline(crop_raw, digi_mont)
+                
                 # Saving the raw fif file
                 crop_raw.save(op.join(aw_raw_dir, 
                                       '{0}-raw.fif'.format(fif_fname)),
@@ -117,6 +144,54 @@ def brainvision_to_mne(vhdr_fnames, elc_fname, events_id, raw_dir, fif_fname):
     return
 
 
+def raw_by_nights(vhdr_fnames, elc_fname, events_id, raw_dir, fif_fname):
+
+    # Reading the montage
+    digi_mont = read_elc(elc_fname, head_size=None)
+
+    raws, eves = [], []
+
+    for vhdr_fname in vhdr_fnames:
+        # Read brainvision raw (no memory loading)
+        raw = brainvision_reader(vhdr_fname)
+        # Extracting salient events
+        try:
+            events, event_dict = mne.events_from_annotations(
+                raw, event_id=events_id)
+        except:
+            continue
+        
+        raws.append(raw)
+        eves.append(events)
+
+    # Concatenate raws and events
+    raw, events = mne.concatenate_raws(raws=raws, preload=False, 
+                                       events_list=eves, on_mismatch='raise',
+                                       verbose='debug')
+    # Deleting list containing raws (reduce memory usage)
+    del raws
+    # Deleting annotations
+    # raw.annotations.delete()
+
+    # Load data in memory
+    brainvision_loader(raw)
+
+    # Adding features to data
+    raw = brvs_pipeline(raw, digi_mont)
+
+    # Creating raw files directory
+    os.makedirs(raw_dir, exist_ok=True)
+
+    # Saving the raw fif file
+    raw.save(op.join(raw_dir, '{0}-raw.fif'.format(fif_fname)),
+                    overwrite=True)
+    # Saving events
+    mne.write_events(op.join(raw_dir, '{0}-eve.fif'.format(fif_fname)), 
+                            events, overwrite=True)
+    
+    return
+
+
 if __name__ == '__main__':
     from utils.io import fname_finder
     from utils.globals import prj_data
@@ -127,16 +202,17 @@ if __name__ == '__main__':
     #          '007', '008', '009', '010', '011']
     sub_n = ['006',
              '007', '008', '009', '010', '011']
-    # sub_n = ['005']
+    sub_n = ['001']
     subjects = [prj + sn for sn in sub_n]
     nights = ['N1', 'N2', 'N3', 'N4']
-    # nights = ['N4']
+    nights = ['N3']
 
     for sbj in subjects:
         for ngt in nights:
             _vhdr = op.join(data_dir, '{0}', '{0}_{1}', 'eeg',
                             '*.vhdr').format(sbj, ngt)
             vhdr_fnames = fname_finder(_vhdr)
+            vhdr_fnames.sort()
             _elc = op.join(data_dir, '{0}', '{0}_{1}', 'eeg', 
                            '{0}_{1}*.elc').format(sbj, ngt)
             elc_fname = fname_finder(_elc)[0]

@@ -41,7 +41,8 @@ def brainvision_reader(vhdr_fname):
         new_eeg_fname = op.join(*eeg_split)
         os.rename(eeg_fname, new_eeg_fname)
         print('To... ', new_eeg_fname)
-        raw = mne.io.read_raw_brainvision(vhdr_fname, preload=False)
+        raw = mne.io.read_raw_brainvision(vhdr_fname, preload=False,
+                                          verbose=False)
         print('Reversing vmrk and eeg file names...')
         os.rename(new_vmrk_fname, vmrk_fname)
         os.rename(new_eeg_fname, eeg_fname)
@@ -59,7 +60,7 @@ def brainvision_loader(raw):
         eeg_split[0] = '/'
         eeg_fname = op.join(*eeg_split)
         os.rename(eeg_fname, new_eeg_fname)
-        raw.load_data()
+        raw.load_data(verbose=False)
         os.rename(new_eeg_fname, eeg_fname)
     finally:
         return
