@@ -39,19 +39,19 @@ def brvs_pipeline(raw_data, montage):
     # ch_drop = ['BIP' + str(b) for b in list(range(4, 25))]
     # crop_raw = crop_raw.drop_channels(ch_drop, on_missing='warn')
     # Adding the reference channel
-    raw_data = raw_data.add_reference_channels('Z12Z')
+    raw_data.add_reference_channels('Z12Z')
     # Renaming and assing a type to autonomic channels
-    raw_data = raw_data.rename_channels(mapping={'BIP1': 'EMG',
-                                                'BIP2': 'ECG',
-                                                'BIP3': 'RES'})
-    raw_data = raw_data.set_channel_types(mapping={'EMG': 'emg',
-                                                'ECG': 'ecg',
-                                                'RES': 'resp'})
+    raw_data.rename_channels(mapping={'BIP1': 'EMG',
+                                      'BIP2': 'ECG',
+                                      'BIP3': 'RES'})
+    raw_data.set_channel_types(mapping={'EMG': 'emg',
+                                        'ECG': 'ecg',
+                                        'RES': 'resp'})
     # Adding the montage after defining autonomic channels
-    raw_data = raw_data.set_montage(montage)
+    raw_data.set_montage(montage)
     # Referencing and renaming the vertical ocular channel
     raw_data = mne.set_bipolar_reference(raw_data, 'VEOGR', 'R1Z', 
-                                         ch_name='VEOG', 
+                                         ch_name='VEOG',
                                          drop_refs=False, 
                                          copy='False')
     # Deleting the old unreferenced VEOGR channel
@@ -62,8 +62,8 @@ def brvs_pipeline(raw_data, montage):
                                          drop_refs=False, 
                                          copy='False')
     # Assing type to ocular channels
-    raw_data = raw_data.set_channel_types(mapping={'VEOG': 'eog',
-                                                   'HEOG': 'eog'})
+    raw_data.set_channel_types(mapping={'VEOG': 'eog',
+                                        'HEOG': 'eog'})
 
     return raw_data
 
@@ -167,14 +167,11 @@ def raw_by_nights(vhdr_fnames, elc_fname, events_id, raw_dir, fif_fname):
     # Concatenate raws and events
     raw, events = mne.concatenate_raws(raws=raws, preload=False, 
                                        events_list=eves, on_mismatch='raise',
-                                       verbose='debug')
+                                       verbose=False)
     # Deleting list containing raws (reduce memory usage)
     del raws
     # Deleting annotations
     # raw.annotations.delete()
-
-    # Load data in memory
-    brainvision_loader(raw)
 
     # Adding features to data
     raw = brvs_pipeline(raw, digi_mont)
