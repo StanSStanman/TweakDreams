@@ -194,13 +194,20 @@ def raw_by_nights(vhdr_fnames, elc_fname, events_id, raw_dir, fif_fname):
     return
 
 
-def rename_raws(raw_dir):
-    import glob
-    raw_files = glob.glob(op.join(raw_dir, '*-raw.fif'))
-    for i, f in enumerate(raw_files):
-        sp = '_split-0{0}'.format(i+1)
-        nf = f.replace(sp, '').replace('-raw.fif', sp + '-raw.fif')
-        os.rename(f, nf)
+# def rename_raws(raw_dir):
+#     import glob
+#     raw_files = glob.glob(op.join(raw_dir, '*-raw.fif'))
+#     for i, f in enumerate(raw_files):
+#         sp = '_split-0{0}'.format(i+1)
+#         nf = f.replace(sp, '').replace('-raw.fif', sp + '-raw.fif')
+#         os.rename(f, nf)
+#     return
+
+
+def rename_raws(raw_dir, fif_fname):
+    raw_fname = op.join(raw_dir, '{0}-raw.fif').format(fif_fname)
+    new_fname = op.join(raw_dir, '{0}-raw-0.fif').format(fif_fname)
+    os.rename(raw_fname, new_fname)
     return
 
 
@@ -210,14 +217,14 @@ if __name__ == '__main__':
     # data_dir = '/media/jerry/ruggero/tweakdreams'
     data_dir = prj_data
     prj = 'TD'
-    # sub_n = ['001', '002', '003', '005', '006',
-    #          '007', '008', '009', '010', '011']
-    sub_n = ['006',
+    sub_n = ['001', '002', '003', '005', '006',
              '007', '008', '009', '010', '011']
-    sub_n = ['001']
+    # sub_n = ['006',
+    #          '007', '008', '009', '010', '011']
+    # sub_n = ['001']
     subjects = [prj + sn for sn in sub_n]
     nights = ['N1', 'N2', 'N3', 'N4']
-    nights = ['N3']
+    # nights = ['N3']
 
     for sbj in subjects:
         for ngt in nights:
