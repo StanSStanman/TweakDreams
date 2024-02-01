@@ -164,11 +164,14 @@ def raw_by_nights(vhdr_fnames, elc_fname, events_id, raw_dir, fif_fname):
         except:
             continue
         
+        # Adding features to data
+        raw = brvs_pipeline(raw, digi_mont)
+
         raws.append(raw)
         eves.append(events)
 
     # Concatenate raws and events
-    raw, events = mne.concatenate_raws(raws=raws, preload=False, 
+    raw, events = mne.concatenate_raws(raws=raws, preload=True, 
                                        events_list=eves, on_mismatch='raise',
                                        verbose=False)
     # Deleting list containing raws (reduce memory usage)
@@ -176,8 +179,8 @@ def raw_by_nights(vhdr_fnames, elc_fname, events_id, raw_dir, fif_fname):
     # Deleting annotations
     # raw.annotations.delete()
 
-    # Adding features to data
-    raw = brvs_pipeline(raw, digi_mont)
+    # # Adding features to data
+    # raw = brvs_pipeline(raw, digi_mont)
 
     # Creating raw files directory
     os.makedirs(raw_dir, exist_ok=True)
@@ -219,12 +222,12 @@ if __name__ == '__main__':
     prj = 'TD'
     sub_n = ['001', '002', '003', '005', '006',
              '007', '008', '009', '010', '011']
-    # sub_n = ['006',
-    #          '007', '008', '009', '010', '011']
-    sub_n = ['001']
+    sub_n = ['005', '006',
+             '007', '008', '009', '010', '011']
+    # sub_n = ['003']
     subjects = [prj + sn for sn in sub_n]
     nights = ['N1', 'N2', 'N3', 'N4']
-    nights = ['N1']
+    # nights = ['N2', 'N3', 'N4']
 
     for sbj in subjects:
         for ngt in nights:
