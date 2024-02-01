@@ -221,10 +221,10 @@ if __name__ == '__main__':
              '007', '008', '009', '010', '011']
     # sub_n = ['006',
     #          '007', '008', '009', '010', '011']
-    # sub_n = ['001']
+    sub_n = ['001']
     subjects = [prj + sn for sn in sub_n]
     nights = ['N1', 'N2', 'N3', 'N4']
-    # nights = ['N3']
+    nights = ['N1']
 
     for sbj in subjects:
         for ngt in nights:
